@@ -3,14 +3,16 @@ const db = require("./db");
 
 module.exports = {
   getDonation: async () => {
-    const query = `select * , donation.city from donation 
+    const query = `select *,donation.imageurl , donation.city from donation 
     inner join users on donation.user_id = users.user_id
-    where donation.is_deleted = false and donation.status = 'approved' `;
+    where donation.is_deleted = false and donation.status = 'approved'
+    -- order by date desc ,time desc 
+    `;
     const result = await db.query(query);
     return result.rows;
   },
   getadminDonation: async () => {
-    const query = `select * from donation 
+    const query = `select *,donation.imageurl from donation 
     inner join users on donation.user_id = users.user_id
     where donation.is_deleted = false and donation.status = 'pending' `;
     const result = await db.query(query);
@@ -18,7 +20,7 @@ module.exports = {
   },
   getNotExpiredDonation: async () => {
     const date = new Date();
-    const query = `select * from donation 
+    const query = `select *,donation.imageurl from donation 
     inner join users on donation.user_id = users.user_id
     where donation.is_deleted = false and expiry_date > $1`;
     const result = await db.query(query, [date]);
@@ -28,7 +30,7 @@ module.exports = {
   getExpiredDonation: async () => {
     const date = new Date();
     const query = `
-    select * from donation 
+    select *,donation.imageurl from donation 
     inner join users on donation.user_id = users.user_id
     where donation.is_deleted = false and expiry_date < $1`;
     const result = await db.query(query, [date]);
@@ -47,28 +49,52 @@ module.exports = {
     additionalnotes,
     imageurl
   ) => {
-    const query = `insert into donation (type, details, city, date, time, expiry_date, user_id, qty,free,expired,additionalnotes,imageurl)
+    if (imageurl) {
+      const query = `insert into donation (type, details, city, date, time, expiry_date, user_id, qty,free,expired,additionalnotes,imageurl)
     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
     `;
-    const date = new Date();
-    const time = new Date().toLocaleTimeString("en-US", {
-      hour12: false,
-    });
-    const values = [
-      type,
-      details,
-      city,
-      date,
-      time,
-      expiry_date,
-      user_id,
-      qty,
-      free,
-      expired,
-      additionalnotes,
-      imageurl,
-    ];
-    await db.query(query, values);
+      const date = new Date();
+      const time = new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+      });
+      const values = [
+        type,
+        details,
+        city,
+        date,
+        time,
+        expiry_date,
+        user_id,
+        qty,
+        free,
+        expired,
+        additionalnotes,
+        imageurl,
+      ];
+      await db.query(query, values);
+    } else {
+      const query = `insert into donation (type, details, city, date, time, expiry_date, user_id, qty,free,expired,additionalnotes)
+    values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    `;
+      const date = new Date();
+      const time = new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+      });
+      const values = [
+        type,
+        details,
+        city,
+        date,
+        time,
+        expiry_date,
+        user_id,
+        qty,
+        free,
+        expired,
+        additionalnotes,
+      ];
+      await db.query(query, values);
+    }
   },
 
   postDonationBusiness: async (
@@ -91,29 +117,54 @@ module.exports = {
       subscriptionResult.rows.length > 0 &&
       subscriptionResult.rows[0].subscription
     ) {
-      const query = `insert into donation (type, details, city, date, time, expiry_date, price, user_id, qty,free,expired,additionalnotes,imageurl)
+      if (imageurl) {
+        const query = `insert into donation (type, details, city, date, time, expiry_date, price, user_id, qty,free,expired,additionalnotes,imageurl)
     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
     `;
-      const date = new Date();
-      const time = new Date().toLocaleTimeString("en-US", {
-        hour12: false,
-      });
-      const values = [
-        type,
-        details,
-        city,
-        date,
-        time,
-        expiry_date,
-        price,
-        user_id,
-        qty,
-        free,
-        expired,
-        additionalnotes,
-        imageurl,
-      ];
-      await db.query(query, values);
+        const date = new Date();
+        const time = new Date().toLocaleTimeString("en-US", {
+          hour12: false,
+        });
+        const values = [
+          type,
+          details,
+          city,
+          date,
+          time,
+          expiry_date,
+          price,
+          user_id,
+          qty,
+          free,
+          expired,
+          additionalnotes,
+          imageurl,
+        ];
+        await db.query(query, values);
+      } else {
+        const query = `insert into donation (type, details, city, date, time, expiry_date, price, user_id, qty,free,expired,additionalnotes)
+    values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+    `;
+        const date = new Date();
+        const time = new Date().toLocaleTimeString("en-US", {
+          hour12: false,
+        });
+        const values = [
+          type,
+          details,
+          city,
+          date,
+          time,
+          expiry_date,
+          price,
+          user_id,
+          qty,
+          free,
+          expired,
+          additionalnotes,
+        ];
+        await db.query(query, values);
+      }
     } else {
       throw new Error("User is not subscribed. Cannot post a new donation.");
     }
@@ -132,46 +183,36 @@ module.exports = {
     additionalnotes,
     imageurl
   ) => {
-    const subscriptionQuery = `SELECT subscription FROM users WHERE user_id = $1 `;
-    const subscriptionResult = await db.query(subscriptionQuery, [user_id]);
-
-    if (
-      subscriptionResult.rows.length > 0 &&
-      subscriptionResult.rows[0].subscription
-    ) {
-      const query = `insert into donation (type, details, city, date, time, expiry_date, price, user_id, qty,free,expired,additionalnotes,imageurl,status)
+    const query = `insert into donation (type, details, city, date, time, expiry_date, price, user_id, qty,free,expired,additionalnotes,imageurl,status)
     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
     `;
-      const status = "approved";
-      const date = new Date();
-      const time = new Date().toLocaleTimeString("en-US", {
-        hour12: false,
-      });
-      const values = [
-        type,
-        details,
-        city,
-        date,
-        time,
-        expiry_date,
-        price,
-        user_id,
-        qty,
-        free,
-        expired,
-        additionalnotes,
-        imageurl,
-        status,
-      ];
-      await db.query(query, values);
-    } else {
-      throw new Error("User is not subscribed. Cannot post a new donation.");
-    }
+    const status = "approved";
+    const date = new Date();
+    const time = new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+    });
+    const values = [
+      type,
+      details,
+      city,
+      date,
+      time,
+      expiry_date,
+      price,
+      user_id,
+      qty,
+      free,
+      expired,
+      additionalnotes,
+      imageurl,
+      status,
+    ];
+    await db.query(query, values);
   },
 
   getDonationById: async (id) => {
     const donation = await db.query(
-      `select * from donation 
+      `select *,donation.imageurl from donation 
       inner join users on donation.user_id = users.user_id 
       where donation_id = $1 and donation.is_deleted = false`,
       [id]
@@ -246,10 +287,10 @@ module.exports = {
       throw new Error("Invalid page or limit parameter");
     }
     const offset = (page - 1) * limit;
-    const query = `select * from donation 
+    const query = `select *,donation.imageurl from donation 
     inner join users on donation.user_id = users.user_id
     where donation.is_deleted = false 
-	  order by date DESC LIMIT $1 OFFSET $2 `;
+	  order by date desc ,time desc LIMIT $1 OFFSET $2 `;
     const result = await db.query(query, [limit, offset]);
     return result.rows;
   },
@@ -258,7 +299,7 @@ module.exports = {
       throw new Error("Invalid page or limit parameter");
     }
     const offset = (page - 1) * limit;
-    const query = `select * from donation 
+    const query = `select *,donation.imageurl from donation 
     inner join users on donation.user_id = users.user_id
     where donation.is_deleted = false and donation.status = $1 
     order by donation.donation_id LIMIT $2 OFFSET $3`;

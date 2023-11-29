@@ -66,7 +66,7 @@ exports.registerUser = async (req, res) => {
         };
 
         const secretKey = process.env.SECRET_KEY;
-        const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+        const token = jwt.sign(payload, secretKey, { expiresIn: "6h" });
 
         res.status(201).json({
           message: "User Added Successfully",
@@ -105,7 +105,7 @@ exports.loginUser = async (req, res) => {
         user_id: user.user_id,
       };
       const secretKey = process.env.SECRET_KEY;
-      const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+      const token = jwt.sign(payload, secretKey, { expiresIn: "6h" });
 
       res.status(200).json({
         message: "Login Successfully",
@@ -133,6 +133,22 @@ exports.getUserDetails = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+// // ----------------------------------------------------------------all user details-----------------------------------------------
+// exports.getUserDetails = async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+
+//     if (isNaN(page) || isNaN(limit) || page <= 0 || limit <= 0) {
+//       throw new Error("Invalid page or limit parameter");
+//     }
+//     const userDetails = await userModel.getUserDetails(page, limit);
+//     res.json(userDetails);
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).send(err.message);
+//   }
+// };
 // ----------------------------------------------------------------selected user details-----------------------------------------------
 exports.getuserinfo = async (req, res) => {
   const user_id = req.user.user_id;

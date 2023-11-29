@@ -9,7 +9,10 @@ module.exports = {
       }
       const offset = (page - 1) * limit;
       const user = await db.query(
-        `SELECT * FROM users WHERE is_deleted = false order by user_id LIMIT $1 OFFSET $2 `,
+        `SELECT *, COUNT(*) OVER () as total_count
+        FROM users
+        WHERE is_deleted = false ORDER BY user_id
+        LIMIT $1 OFFSET $2; `,
         [limit, offset]
       );
       return user.rows;
@@ -17,6 +20,21 @@ module.exports = {
       throw err;
     }
   },
+  // getUserDetails: async (page, limit) => {
+  //   try {
+  //     if (page <= 0 || limit <= 0) {
+  //       throw new Error("Invalid page or limit parameter");
+  //     }
+  //     const offset = (page - 1) * limit;
+  //     const user = await db.query(
+  //       `SELECT * FROM users WHERE is_deleted = false order by user_id LIMIT $1 OFFSET $2 `,
+  //       [limit, offset]
+  //     );
+  //     return user.rows;
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // },
 
   getUserInfo: async (user_id) => {
     try {

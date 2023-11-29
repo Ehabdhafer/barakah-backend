@@ -12,14 +12,29 @@ router.get("/getconfirm", confirmController.getconfirm);
 router.get("/getconfirm/:id", confirmController.getconfirmid);
 router.put("/deleteconfirm/:id", confirmController.deleteconfirm);
 router.get(
-  "/getconfirmhistory",
+  "/getconfirmhistorydonate",
   verify.authorize([1, 2, 3, 4, 5]),
-  confirmController.getHistory
+  confirmController.getConfirmHistorydonate
+);
+router.get(
+  "/getconfirmhistoryorder",
+  verify.authorize([1, 2, 3, 4, 5]),
+  confirmController.getConfirmHistoryorder
 );
 router.get(
   "/getconfirmhistory/:id",
   verify.authorize([1, 2, 3, 4, 5]),
   confirmController.getHistoryid
+);
+router.get(
+  "/getconfirmhistorydonate/:id",
+  verify.authorize([1, 2, 3, 4, 5]),
+  confirmController.getConfirmHistoryiddonate
+);
+router.get(
+  "/getconfirmhistoryorder/:id",
+  verify.authorize([1, 2, 3, 4, 5]),
+  confirmController.getConfirmHistoryidorder
 );
 
 module.exports = router;
